@@ -59,6 +59,9 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
             
             // Create child PCB
             PCB child(next_pid++, current.PID, current.program_name, current.size, current.partition_number);
+            if (!allocate_memory(&child)) {
+                std::cerr << "Error. Memory allocation failed for child PID " << child.PID << std::endl;
+            }
             wait_queue.push_back(current); // Parent goes to wait queue
             
             // Call scheduler
@@ -106,11 +109,33 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
                     child_trace.push_back(trace_file[j]);
                 }
             }
-            i = parent_index;
+            //i = parent_index;
 
             ///////////////////////////////////////////////////////////////////////////////////////////
             //With the child's trace, run the child (HINT: think recursion)
 
+            auto [child_exec, child_status, child_end_time] = simulate_trace(
+                child_trace, 
+                current_time, 
+                vectors, 
+                delays, 
+                external_files, 
+                child, 
+                wait_queue
+            );
+            
+            execution += child_exec;
+            system_status += child_status;
+            current_time = child_end_time;
+            
+            // After child finishes, restore parent from wait queue
+            if(!wait_queue.empty()) {
+                current = wait_queue.back();
+                wait_queue.pop_back();
+            }
+            
+            // Set i to parent_index to continue with parent execution
+            i = parent_index;
 
 
             ///////////////////////////////////////////////////////////////////////////////////////////
@@ -124,7 +149,36 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
             ///////////////////////////////////////////////////////////////////////////////////////////
             //Add your EXEC output here
 
-
+            unsigned int prog_size = get_size(program_name, external_files);
+            
+            // Free old memory partition (if allocated)
+            if (current.partition_number != -1) {
+                free_memory(&current);
+            }
+            
+            // Update PCB with new program information
+            current.program_name = program_name;
+            current.size = prog_size;
+            
+            // Allocate memory partition for new program
+            if (!allocate_memory(&current)) {
+                std::cerr << "ERROR! Memory allocation failed for " << program_name << std::endl;
+            }
+            
+            // Simulate loading program into memory (15 ms per MB)
+            int loader_time = 15 * prog_size;
+            execution += std::to_string(current_time) + ", " + std::to_string(loader_time) + 
+                         ", loading program into memory\n";
+            current_time += loader_time;
+            
+            // Call scheduler and return from interrupt
+            execution += std::to_string(current_time) + ", 0, scheduler called\n";
+            execution += std::to_string(current_time) + ", 1, IRET\n";
+            current_time += 1;
+            
+            // Take system status snapshot
+            system_status += "time: " + std::to_string(current_time) + "; current trace: " + trace + "\n";
+            system_status += print_PCB(current, wait_queue);
 
             ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -140,12 +194,27 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
             ///////////////////////////////////////////////////////////////////////////////////////////
             //With the exec's trace (i.e. trace of external program), run the exec (HINT: think recursion)
 
-
+            auto [exec_exec, exec_status, exec_end_time] = simulate_trace(
+                exec_traces,
+                current_time,
+                vectors,
+                delays,
+                external_files,
+                current,
+                wait_queue
+            );
+            
+            execution += exec_exec;
+            system_status += exec_status;
+            current_time = exec_end_time;
 
             ///////////////////////////////////////////////////////////////////////////////////////////
 
             break; //Why is this important? (answer in report)
 
+        } else if(activity == "IF_CHILD" || activity == "IF_PARENT" || activity == "ENDIF") {
+            // Skip these lines as they are handled in FORK logic
+            continue;
         }
     }
 
