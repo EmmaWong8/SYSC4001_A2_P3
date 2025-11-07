@@ -149,27 +149,37 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
             ///////////////////////////////////////////////////////////////////////////////////////////
             //Add your EXEC output here
 
+            // Get program size from external files
             unsigned int prog_size = get_size(program_name, external_files);
             
-            // Free old memory partition (if allocated)
+            // Output program size
+            execution += std::to_string(current_time) + ", " + std::to_string(duration_intr) + ", Program is " + std::to_string(prog_size) + " Mb large\n";
+            current_time += duration_intr;
+            
+            // Free old memory partition if allocated
             if (current.partition_number != -1) {
                 free_memory(&current);
             }
             
-            // Update PCB with new program information
+            // Load program into memory (15 ms per MB)
+            int loader_time = 15 * prog_size;
+            execution += std::to_string(current_time) + ", " + std::to_string(loader_time) + ", loading program into memory\n";
+            current_time += loader_time;
+            
+            // Mark partition as occupied (random time = 3ms)
+            execution += std::to_string(current_time) + ", 3, marking partition as occupied\n";
+            current_time += 3;
+            
+            // Update PCB with new program information (random time = 6ms)
+            execution += std::to_string(current_time) + ", 6, updating PCB\n";
+            current_time += 6;
             current.program_name = program_name;
             current.size = prog_size;
             
             // Allocate memory partition for new program
             if (!allocate_memory(&current)) {
-                std::cerr << "ERROR! Memory allocation failed for " << program_name << std::endl;
+                std::cerr << "Error. Memory allocation failed for " << program_name << std::endl;
             }
-            
-            // Simulate loading program into memory (15 ms per MB)
-            int loader_time = 15 * prog_size;
-            execution += std::to_string(current_time) + ", " + std::to_string(loader_time) + 
-                         ", loading program into memory\n";
-            current_time += loader_time;
             
             // Call scheduler and return from interrupt
             execution += std::to_string(current_time) + ", 0, scheduler called\n";
