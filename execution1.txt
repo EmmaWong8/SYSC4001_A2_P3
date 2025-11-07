@@ -34,5 +34,5 @@
 631, 1, find vector 4 in memory position 0x0008
 632, 1, load address 0X0292
  into the PC
-633, 250, SYSCALL ISR (ADD STEPS HERE)
+633, 250, SYSCALL ISR (saving registers, executing system call, updating PCB)
 883, 1, IRET

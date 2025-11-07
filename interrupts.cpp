@@ -30,7 +30,7 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
             execution += intr;
             current_time = time;
 
-            execution += std::to_string(current_time) + ", " + std::to_string(delays[duration_intr]) + ", SYSCALL ISR (ADD STEPS HERE)\n";
+            execution += std::to_string(current_time) + ", " + std::to_string(delays[duration_intr]) + ", SYSCALL ISR (saving registers, executing system call, updating PCB)\n";
             current_time += delays[duration_intr];
 
             execution +=  std::to_string(current_time) + ", 1, IRET\n";
@@ -40,7 +40,7 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
             current_time = time;
             execution += intr;
 
-            execution += std::to_string(current_time) + ", " + std::to_string(delays[duration_intr]) + ", ENDIO ISR(ADD STEPS HERE)\n";
+            execution += std::to_string(current_time) + ", " + std::to_string(delays[duration_intr]) + ", ENDIO ISR(clearing interrupt flag, signaling process ready, updating ready queue)\n";
             current_time += delays[duration_intr];
 
             execution +=  std::to_string(current_time) + ", 1, IRET\n";
@@ -248,7 +248,7 @@ int main(int argc, char** argv) {
     PCB current(0, -1, "init", 1, -1);
     //Update memory (partition is assigned here, you must implement this function)
     if(!allocate_memory(&current)) {
-        std::cerr << "ERROR! Memory allocation failed!" << std::endl;
+        std::cerr << "Error. Memory allocation failed!" << std::endl;
     }
 
     std::vector<PCB> wait_queue;
