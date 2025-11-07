@@ -5,3 +5,5 @@ program4, 15
 program5, 10
 program6, 10
 program7, 15
+program8, 10
+program9, 15
