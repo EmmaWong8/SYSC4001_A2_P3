@@ -1,0 +1,23 @@
+0, 20, CPU Burst
+20, 1, switch to kernel mode
+21, 10, context saved
+31, 1, find vector 3 in memory position 0x0006
+32, 1, load address 0X042B into the PC
+33, 15, Program is 10 Mb large
+48, 150, loading program into memory
+198, 3, marking partition as occupied
+201, 6, updating PCB
+207, 0, scheduler called
+207, 1, IRET
+208, 30, CPU Burst
+238, 1, switch to kernel mode
+239, 10, context saved
+249, 1, find vector 3 in memory position 0x0006
+250, 1, load address 0X042B into the PC
+251, 10, Program is 15 Mb large
+261, 225, loading program into memory
+486, 3, marking partition as occupied
+489, 6, updating PCB
+495, 0, scheduler called
+495, 1, IRET
+496, 50, CPU Burst
