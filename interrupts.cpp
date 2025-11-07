@@ -2,6 +2,8 @@
  *
  * @file interrupts.cpp
  * @author Sasisekhar Govind
+ * @author Eshal Kashif
+ * @author Emma Wong
  *
  */
 
